@@ -13,11 +13,23 @@ Returns a Lambda Proxy Integration response: statusCode, headers, body.
 
 import json
 
+# Longest name echoed back, so a caller cannot make the function return or log a huge string.
+MAX_NAME_LENGTH = 64
+
+
+def _clean(name):
+    """A trimmed, length-limited string, or "unknown" for anything that is not a usable name."""
+    if not isinstance(name, str) or not name.strip():
+        return "unknown"
+    return name.strip()[:MAX_NAME_LENGTH]
+
 
 def _extract_name(event):
     """Return the name from any of the three event shapes the lab uses."""
-    if "name" in event and isinstance(event["name"], str):
-        return event["name"]
+    if not isinstance(event, dict):
+        return "unknown"
+    if "name" in event:
+        return _clean(event["name"])
 
     body = event.get("body")
     if not body:
@@ -32,15 +44,25 @@ def _extract_name(event):
         return "unknown"
 
     if isinstance(parsed, dict):
-        return parsed.get("name", "unknown")
+        return _clean(parsed.get("name"))
 
     return "unknown"
 
 
-def lambda_handler(event, context):
-    print(json.dumps({"event": event}))
+def _source(event):
+    """Which of the three invocation shapes this is, for the log line."""
+    if not isinstance(event, dict):
+        return "other"
+    if "requestContext" in event:
+        return "http"
+    return "direct"
 
+
+def lambda_handler(event, context):
     name = _extract_name(event)
+    # Log the shape, not the event: HTTP events carry the caller's IP address and headers.
+    print(json.dumps({"source": _source(event), "name_length": len(name)}))
+
     message = f"Hello {name}!"
 
     return {
