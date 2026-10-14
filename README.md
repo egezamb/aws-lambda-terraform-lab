@@ -153,16 +153,20 @@ The lab gradually evolves the greeter Lambda to accept three different invocatio
 
 ```python
 def _extract_name(event):
-    if "name" in event and isinstance(event["name"], str):
-        return event["name"]                          # direct test event
+    if not isinstance(event, dict):
+        return "unknown"
+    if "name" in event:
+        return _clean(event["name"])                  # direct test event
 
     body = event.get("body")
     if not body:
         return "unknown"
 
     parsed = json.loads(body) if isinstance(body, str) else body
-    return parsed.get("name", "unknown")              # Function URL / HTTP / REST
+    return _clean(parsed.get("name"))                 # Function URL / HTTP / REST
 ```
+
+`_clean` accepts only a non-empty string and cuts it to 64 characters, so a caller cannot make the function echo or log a huge value. The function logs the invocation shape and the name's length, never the event itself: HTTP events carry the caller's IP address and headers. `tests/test_greeter.py` covers the three shapes and bad input, and runs in CI.
 
 Same handler, three invocation paths, one Lambda. Saves a redeploy and keeps the code honest.
 
@@ -189,7 +193,7 @@ Same handler, three invocation paths, one Lambda. Saves a redeploy and keeps the
 ### Exercise 2
 1. **`event.get('name', 'unknown')` vs `event['name']`** — `.get()` returns a default if the key is missing; `[]` raises `KeyError`. The difference matters when callers omit fields, which is common with real API traffic.
 2. **Why return `{statusCode, headers, body}`?** This is the Lambda Proxy Integration format. API Gateway expects exactly this shape to translate the response into an HTTP reply with status code and headers.
-3. **Search in CloudWatch Logs** — filter by the log group `/aws/lambda/lab10-lambda-myFun2` and search for the `name` value, or use the request ID printed in the log header.
+3. **Search in CloudWatch Logs** — filter by the log group `/aws/lambda/lab10-lambda-myFun2` and use the request ID printed in the log header. The function logs `{"source": ..., "name_length": ...}`, not the name or the event, so personal data and caller IPs stay out of the logs.
 
 ### Exercise 3
 1. **Why did the function code change between Ex 2 and Ex 3?** API Gateway and Function URL deliver the request payload as a JSON string in `event["body"]`, not as top-level keys. The function must parse the body to extract the name.
@@ -248,7 +252,8 @@ aws-lambda-terraform-lab/
 ├── lambda/
 │   ├── ec2_stopper/lambda_function.py
 │   └── greeter/lambda_function.py
-├── .github/workflows/terraform.yml   # CI: fmt + init + validate on every push
+├── tests/test_greeter.py             # pytest for the greeter
+├── .github/workflows/terraform.yml   # CI: fmt + validate, Lambda tests, trivy security scan
 └── .gitignore
 ```
 
