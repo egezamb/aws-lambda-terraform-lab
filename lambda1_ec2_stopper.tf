@@ -1,3 +1,7 @@
+locals {
+  ec2_stopper_name = "${var.project_name}-myFun1"
+}
+
 data "archive_file" "ec2_stopper_zip" {
   type        = "zip"
   source_file = "${path.module}/lambda/ec2_stopper/lambda_function.py"
@@ -5,7 +9,7 @@ data "archive_file" "ec2_stopper_zip" {
 }
 
 resource "aws_lambda_function" "ec2_stopper" {
-  function_name = "${var.project_name}-myFun1"
+  function_name = local.ec2_stopper_name
   description   = "Lab 10 Exercise 1: Stops the test EC2 instance on a schedule"
 
   role     = data.aws_iam_role.lab_role.arn
@@ -23,12 +27,17 @@ resource "aws_lambda_function" "ec2_stopper" {
     }
   }
 
+  depends_on = [aws_cloudwatch_log_group.ec2_stopper]
+
   tags = {
     Exercise = "1 - Scheduled Lambda"
   }
 }
 
+# Named from the local, not from the function, so it exists before the function's first run. If
+# Lambda ran first it would create the group itself, and the next apply would fail with
+# ResourceAlreadyExistsException (and the group would have no retention).
 resource "aws_cloudwatch_log_group" "ec2_stopper" {
-  name              = "/aws/lambda/${aws_lambda_function.ec2_stopper.function_name}"
+  name              = "/aws/lambda/${local.ec2_stopper_name}"
   retention_in_days = var.log_retention_days
 }

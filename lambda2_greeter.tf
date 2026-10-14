@@ -1,3 +1,7 @@
+locals {
+  greeter_name = "${var.project_name}-myFun2"
+}
+
 data "archive_file" "greeter_zip" {
   type        = "zip"
   source_file = "${path.module}/lambda/greeter/lambda_function.py"
@@ -5,7 +9,7 @@ data "archive_file" "greeter_zip" {
 }
 
 resource "aws_lambda_function" "greeter" {
-  function_name = "${var.project_name}-myFun2"
+  function_name = local.greeter_name
   description   = "Lab 10 Exercises 2 and 3: greeter microservice"
 
   role     = data.aws_iam_role.lab_role.arn
@@ -16,13 +20,18 @@ resource "aws_lambda_function" "greeter" {
 
   source_code_hash = data.archive_file.greeter_zip.output_base64sha256
 
+  depends_on = [aws_cloudwatch_log_group.greeter]
+
   tags = {
     Exercise = "2 and 3 - Greeter microservice"
   }
 }
 
+# Named from the local, not from the function, so it exists before the function's first run. If
+# Lambda ran first it would create the group itself, and the next apply would fail with
+# ResourceAlreadyExistsException (and the group would have no retention).
 resource "aws_cloudwatch_log_group" "greeter" {
-  name              = "/aws/lambda/${aws_lambda_function.greeter.function_name}"
+  name              = "/aws/lambda/${local.greeter_name}"
   retention_in_days = var.log_retention_days
 }
 
