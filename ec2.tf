@@ -22,6 +22,12 @@ resource "aws_instance" "lab_test" {
     http_endpoint = "enabled"
   }
 
+  # Encrypted at rest with the AWS-managed EBS key; gp3 is cheaper than gp2 for the same size.
+  root_block_device {
+    volume_type = "gp3"
+    encrypted   = true
+  }
+
   tags = {
     Name    = "${var.project_name}-test-instance"
     Purpose = "Target for scheduled stop Lambda (Exercise 1)"
