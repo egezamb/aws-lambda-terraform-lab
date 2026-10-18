@@ -34,6 +34,10 @@ jobs:
       - name: Terraform validate
         run: terraform validate -no-color
 
+      # Tests with a mocked AWS provider (tests/main.tftest.hcl): no AWS credentials needed
+      - name: Terraform test
+        run: terraform test -no-color
+
       - name: Summary
         if: always()
         run: |
