@@ -1,10 +1,14 @@
+# "al2023-ami-2023.*", not "al2023-ami-*": the looser pattern also matches the minimal
+# (al2023-ami-minimal-...) and ECS-optimized (al2023-ami-ecs-hvm-...) images, and most_recent can
+# pick one of those. A name filter rather than the public SSM parameter, which the Learner Lab's
+# restricted permissions may not allow reading.
 data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["al2023-ami-*-x86_64"]
+    values = ["al2023-ami-2023.*-x86_64"]
   }
 
   filter {
