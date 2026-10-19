@@ -151,3 +151,15 @@ run "the_public_function_url_has_both_statements_it_needs" {
     error_message = "New function URLs also need lambda:InvokeFunction, limited to calls through the URL."
   }
 }
+
+run "the_ami_filter_only_matches_the_standard_al2023_image" {
+  command = plan
+
+  assert {
+    condition = anytrue([
+      for f in data.aws_ami.amazon_linux_2023.filter :
+      f.name == "name" && contains(f.values, "al2023-ami-2023.*-x86_64")
+    ])
+    error_message = "The name filter must exclude the minimal and ECS-optimized AL2023 images."
+  }
+}
