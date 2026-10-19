@@ -46,10 +46,22 @@ resource "aws_lambda_function_url" "greeter" {
   }
 }
 
+# A public function URL needs two statements: InvokeFunctionUrl, and (for URLs created since
+# October 2025) InvokeFunction. Without the second the URL answers 403 Forbidden.
 resource "aws_lambda_permission" "allow_function_url" {
   statement_id           = "AllowPublicFunctionUrlInvoke"
   action                 = "lambda:InvokeFunctionUrl"
   function_name          = aws_lambda_function.greeter.function_name
   principal              = "*"
   function_url_auth_type = "NONE"
+}
+
+# invoked_via_function_url limits this statement to calls through the URL, so the public "*"
+# principal cannot invoke the function directly with the Lambda API.
+resource "aws_lambda_permission" "allow_function_url_invoke" {
+  statement_id             = "AllowPublicFunctionUrlInvokeFunction"
+  action                   = "lambda:InvokeFunction"
+  function_name            = aws_lambda_function.greeter.function_name
+  principal                = "*"
+  invoked_via_function_url = true
 }

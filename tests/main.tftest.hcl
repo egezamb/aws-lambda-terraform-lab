@@ -132,3 +132,22 @@ run "lambda_permissions_are_scoped_to_their_source" {
     error_message = "Only this REST API may invoke the greeter through API Gateway v1."
   }
 }
+
+run "the_public_function_url_has_both_statements_it_needs" {
+  command = plan
+
+  assert {
+    condition = (
+      aws_lambda_permission.allow_function_url.action == "lambda:InvokeFunctionUrl" &&
+      aws_lambda_permission.allow_function_url.function_url_auth_type == "NONE"
+    )
+    error_message = "The function URL needs lambda:InvokeFunctionUrl for auth type NONE."
+  }
+  assert {
+    condition = (
+      aws_lambda_permission.allow_function_url_invoke.action == "lambda:InvokeFunction" &&
+      aws_lambda_permission.allow_function_url_invoke.invoked_via_function_url
+    )
+    error_message = "New function URLs also need lambda:InvokeFunction, limited to calls through the URL."
+  }
+}
