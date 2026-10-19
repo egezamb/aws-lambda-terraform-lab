@@ -27,6 +27,13 @@ resource "aws_apigatewayv2_stage" "greeter_http_default" {
   api_id      = aws_apigatewayv2_api.greeter_http.id
   name        = "$default"
   auto_deploy = true
+
+  # The API is public and unauthenticated. Without a stage limit only the account-wide default
+  # (10,000 requests per second) applies, so a loop or a scraper could invoke the Lambda that often.
+  default_route_settings {
+    throttling_rate_limit  = var.api_rate_limit
+    throttling_burst_limit = var.api_burst_limit
+  }
 }
 
 resource "aws_lambda_permission" "allow_http_api" {
@@ -124,6 +131,18 @@ resource "aws_api_gateway_stage" "greeter_rest_default" {
   deployment_id = aws_api_gateway_deployment.greeter_rest.id
   rest_api_id   = aws_api_gateway_rest_api.greeter_rest.id
   stage_name    = "default"
+}
+
+# The same limit for every method of the REST API's stage.
+resource "aws_api_gateway_method_settings" "greeter_rest_throttle" {
+  rest_api_id = aws_api_gateway_rest_api.greeter_rest.id
+  stage_name  = aws_api_gateway_stage.greeter_rest_default.stage_name
+  method_path = "*/*"
+
+  settings {
+    throttling_rate_limit  = var.api_rate_limit
+    throttling_burst_limit = var.api_burst_limit
+  }
 }
 
 resource "aws_lambda_permission" "allow_rest_api" {
