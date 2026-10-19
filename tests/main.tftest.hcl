@@ -163,3 +163,38 @@ run "the_ami_filter_only_matches_the_standard_al2023_image" {
     error_message = "The name filter must exclude the minimal and ECS-optimized AL2023 images."
   }
 }
+
+run "both_apis_are_throttled" {
+  command = plan
+
+  variables {
+    api_rate_limit  = 3
+    api_burst_limit = 6
+  }
+
+  assert {
+    condition = (
+      aws_apigatewayv2_stage.greeter_http_default.default_route_settings[0].throttling_rate_limit == 3 &&
+      aws_apigatewayv2_stage.greeter_http_default.default_route_settings[0].throttling_burst_limit == 6
+    )
+    error_message = "The HTTP API stage must use api_rate_limit and api_burst_limit."
+  }
+  assert {
+    condition = (
+      aws_api_gateway_method_settings.greeter_rest_throttle.method_path == "*/*" &&
+      aws_api_gateway_method_settings.greeter_rest_throttle.settings[0].throttling_rate_limit == 3 &&
+      aws_api_gateway_method_settings.greeter_rest_throttle.settings[0].throttling_burst_limit == 6
+    )
+    error_message = "Every method of the REST API stage must use the same limits."
+  }
+}
+
+run "a_zero_rate_limit_is_refused" {
+  command = plan
+
+  variables {
+    api_rate_limit = 0
+  }
+
+  expect_failures = [var.api_rate_limit]
+}

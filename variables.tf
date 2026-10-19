@@ -45,3 +45,25 @@ variable "your_name" {
   type        = string
   default     = "Ege"
 }
+
+variable "api_rate_limit" {
+  description = "Steady requests per second each API Gateway stage (HTTP and REST) accepts before answering 429."
+  type        = number
+  default     = 5
+
+  validation {
+    condition     = var.api_rate_limit > 0
+    error_message = "api_rate_limit must be above 0; 0 would refuse every request."
+  }
+}
+
+variable "api_burst_limit" {
+  description = "Requests each API Gateway stage accepts at once above the steady rate."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.api_burst_limit >= 1 && floor(var.api_burst_limit) == var.api_burst_limit
+    error_message = "api_burst_limit must be a whole number of at least 1."
+  }
+}
