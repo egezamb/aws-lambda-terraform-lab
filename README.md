@@ -86,7 +86,7 @@ The Learner Lab has two relevant restrictions:
 
 1. **IAM operations are restricted** — you cannot create new IAM roles or policies. This Terraform uses `data.aws_iam_role.lab_role` to reference the existing `LabRole` rather than creating one.
 
-2. **Public Lambda Function URLs are blocked by SCP** (Service Control Policy). Even though the Function URL is created correctly with `AuthType = NONE` and the resource policy includes `FunctionURLAllowPublicAccess`, calls return `403 AccessDeniedException` at the platform edge. The HTTP API and REST API endpoints are equivalent alternatives and demonstrate the same architectural pattern. In a real AWS account (outside the academic sandbox) the Function URL works without modification.
+2. **The Function URL answered `403 AccessDeniedException` in the Learner Lab**, although it was created with `AuthType = NONE` and the `FunctionURLAllowPublicAccess` statement. One cause is now known: since October 2025 a new function URL also needs a `lambda:InvokeFunction` statement, and with only `lambda:InvokeFunctionUrl` it answers 403 in any account. This repo now adds that statement (`allow_function_url_invoke`, limited to calls through the URL). Whether the sandbox also blocks public URLs, for example with an SCP, has not been re-tested with both statements. The HTTP API and REST API endpoints are equivalent alternatives and demonstrate the same architectural pattern.
 
 Both constraints are educationally useful — they mirror the kind of organizational guardrails real cloud teams operate under. In a production environment you would create dedicated least-privilege roles per Lambda and explicitly opt into Function URL exposure — see the [Production Hardening](#production-hardening) section.
 
