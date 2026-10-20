@@ -35,6 +35,11 @@ mock_provider "aws" {
       execution_arn = "arn:aws:execute-api:us-east-1:123456789012:httpapi"
     }
   }
+  mock_resource "aws_cloudwatch_log_group" {
+    defaults = {
+      arn = "arn:aws:logs:us-east-1:123456789012:log-group:mock"
+    }
+  }
   mock_resource "aws_api_gateway_rest_api" {
     defaults = {
       execution_arn = "arn:aws:execute-api:us-east-1:123456789012:restapi"
@@ -197,4 +202,21 @@ run "a_zero_rate_limit_is_refused" {
   }
 
   expect_failures = [var.api_rate_limit]
+}
+
+run "http_api_stage_writes_access_logs_with_retention" {
+  command = apply
+
+  assert {
+    condition     = one(aws_apigatewayv2_stage.greeter_http_default.access_log_settings[*].destination_arn) == aws_cloudwatch_log_group.http_api_access.arn
+    error_message = "The public HTTP API stage must send access logs to its own log group, or there is no record of who called it."
+  }
+  assert {
+    condition     = aws_cloudwatch_log_group.http_api_access.retention_in_days == 7
+    error_message = "The access log group keeps logs for log_retention_days, like the Lambda groups."
+  }
+  assert {
+    condition     = alltrue([for k in ["requestId", "ip", "routeKey", "status"] : contains(keys(jsondecode(one(aws_apigatewayv2_stage.greeter_http_default.access_log_settings[*].format))), k)])
+    error_message = "Each access log line is JSON with at least the request ID, caller IP, route and status."
+  }
 }
