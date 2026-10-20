@@ -34,6 +34,27 @@ resource "aws_apigatewayv2_stage" "greeter_http_default" {
     throttling_rate_limit  = var.api_rate_limit
     throttling_burst_limit = var.api_burst_limit
   }
+
+  # One JSON line per request: who called, which route, what it answered. Unlike the REST API,
+  # an HTTP API needs no account-level CloudWatch role for this, so it works in the Learner Lab.
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.http_api_access.arn
+    format = jsonencode({
+      requestId          = "$context.requestId"
+      ip                 = "$context.identity.sourceIp"
+      requestTime        = "$context.requestTime"
+      routeKey           = "$context.routeKey"
+      status             = "$context.status"
+      responseLength     = "$context.responseLength"
+      integrationLatency = "$context.integrationLatency"
+      integrationError   = "$context.integrationErrorMessage"
+    })
+  }
+}
+
+resource "aws_cloudwatch_log_group" "http_api_access" {
+  name              = "/aws/apigateway/${var.project_name}-myFun2-http-api"
+  retention_in_days = var.log_retention_days
 }
 
 resource "aws_lambda_permission" "allow_http_api" {
