@@ -52,3 +52,8 @@ output "sample_curl_rest_api" {
   description = "Copy-paste curl command to invoke the REST API"
   value       = "curl '${aws_api_gateway_stage.greeter_rest_default.invoke_url}/myFun2?name=${var.your_name}'"
 }
+
+output "http_api_access_log_group" {
+  description = "CloudWatch log group with one JSON line per HTTP API request. Follow it with: aws logs tail <name> --follow"
+  value       = aws_cloudwatch_log_group.http_api_access.name
+}
