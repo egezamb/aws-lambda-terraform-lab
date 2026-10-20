@@ -39,7 +39,7 @@ The original lab is a 30+ click-through tour of the AWS Console. This repo repro
    │  micro      │
    └─────────────┘
 
-   CloudWatch Logs (with 7-day retention) for both Lambdas
+   CloudWatch Logs (with 7-day retention) for both Lambdas and the HTTP API's access log
 ```
 
 | Resource | Terraform file | Purpose |
@@ -52,6 +52,7 @@ The original lab is a 30+ click-through tour of the AWS Console. This repo repro
 | HTTP API Gateway v2 | [`api_gateway.tf`](./api_gateway.tf) | `POST /greet` with JSON body |
 | REST API Gateway v1 | [`api_gateway.tf`](./api_gateway.tf) | `GET /myFun2?name=...` with mapping template |
 | CloudWatch Log Groups | inline | 7-day log retention for both Lambdas |
+| HTTP API access log | [`api_gateway.tf`](./api_gateway.tf) | One JSON line per request (caller IP, route, status, latency), same retention |
 | IAM Role | [`providers.tf`](./providers.tf) | References `LabRole` via `data` source (Learner Lab constraint) |
 
 ---
@@ -204,7 +205,7 @@ Same handler, three invocation paths, one Lambda. Saves a redeploy and keeps the
    - HTTP API is ~70% cheaper and ~60% lower latency
    - REST API supports request transformation, usage plans, API keys, full Swagger/OpenAPI import
    - Choose REST API when you need usage plans, API keys, or complex request/response transformation; HTTP API for everything else
-4. **Auth NONE / Security Open** — fine in a sandbox because instances are short-lived. In production: open endpoints are scraped within minutes by bots, Lambda invocations cost money, and you have no audit trail of who called what. Use JWT (Cognito) or IAM auth.
+4. **Auth NONE / Security Open** — fine in a sandbox because instances are short-lived. In production: open endpoints are scraped within minutes by bots, Lambda invocations cost money, and without logs you have no audit trail of who called what. The HTTP API now writes an access log; the REST API does not, because its access logs need an account-level CloudWatch role that the Learner Lab cannot create. Use JWT (Cognito) or IAM auth.
 
 ### Reflection — 20 instances across 3 regions
 
