@@ -138,6 +138,16 @@ aws logs tail /aws/lambda/lab10-lambda-myFun1 --follow
 
 You should see a JSON summary printed on each invocation.
 
+### Watch the HTTP API access log
+
+Every request to the HTTP API leaves one JSON line (caller IP, route, status, latency):
+
+```bash
+aws logs tail $(terraform output -raw http_api_access_log_group) --follow
+```
+
+Run one of the `sample_curl_http_api` commands in another terminal and its line appears within seconds.
+
 ### Tear down
 
 ```bash
