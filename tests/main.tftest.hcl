@@ -220,3 +220,12 @@ run "http_api_stage_writes_access_logs_with_retention" {
     error_message = "Each access log line is JSON with at least the request ID, caller IP, route and status."
   }
 }
+
+run "the_access_log_group_is_an_output" {
+  command = apply
+
+  assert {
+    condition     = output.http_api_access_log_group == aws_cloudwatch_log_group.http_api_access.name
+    error_message = "The access log group's name is an output, so `aws logs tail` knows where to look."
+  }
+}
