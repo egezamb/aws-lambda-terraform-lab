@@ -229,3 +229,27 @@ run "the_access_log_group_is_an_output" {
     error_message = "The access log group's name is an output, so `aws logs tail` knows where to look."
   }
 }
+
+run "a_schedule_scheduler_cannot_parse_is_refused" {
+  command = plan
+
+  # The provider accepts any string here; EventBridge Scheduler would only reject it at apply.
+  variables {
+    schedule_rate = "every 2 minutes"
+  }
+
+  expect_failures = [var.schedule_rate]
+}
+
+run "cron_and_one_time_schedules_are_accepted" {
+  command = plan
+
+  variables {
+    schedule_rate = "cron(0 18 * * ? *)"
+  }
+
+  assert {
+    condition     = aws_scheduler_schedule.stop_ec2.schedule_expression == "cron(0 18 * * ? *)"
+    error_message = "A cron expression must reach the schedule unchanged."
+  }
+}
