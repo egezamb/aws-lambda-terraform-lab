@@ -253,3 +253,28 @@ run "cron_and_one_time_schedules_are_accepted" {
     error_message = "A cron expression must reach the schedule unchanged."
   }
 }
+
+run "a_non_python_runtime_is_refused" {
+  command = plan
+
+  # Both functions are Python files. The provider accepts nodejs20.x, and the functions would
+  # then fail on every invocation.
+  variables {
+    lambda_runtime = "nodejs20.x"
+  }
+
+  expect_failures = [var.lambda_runtime]
+}
+
+run "a_newer_python_runtime_reaches_both_functions" {
+  command = plan
+
+  variables {
+    lambda_runtime = "python3.13"
+  }
+
+  assert {
+    condition     = aws_lambda_function.ec2_stopper.runtime == "python3.13" && aws_lambda_function.greeter.runtime == "python3.13"
+    error_message = "lambda_runtime must set both functions' runtime."
+  }
+}
