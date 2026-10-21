@@ -41,6 +41,12 @@ variable "lambda_runtime" {
   description = "Python runtime version for Lambda functions"
   type        = string
   default     = "python3.12"
+
+  # The code is Python, but the provider accepts any Lambda runtime, such as nodejs20.x.
+  validation {
+    condition     = can(regex("^python3\\.[0-9]+$", var.lambda_runtime))
+    error_message = "lambda_runtime must be a Python 3 runtime such as python3.12; both functions are Python."
+  }
 }
 
 variable "log_retention_days" {
