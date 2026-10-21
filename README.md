@@ -177,7 +177,7 @@ def _extract_name(event):
     return _clean(parsed.get("name"))                 # Function URL / HTTP / REST
 ```
 
-`_clean` accepts only a non-empty string and cuts it to 64 characters, so a caller cannot make the function echo or log a huge value. The function logs the invocation shape and the name's length, never the event itself: HTTP events carry the caller's IP address and headers. `tests/test_greeter.py` covers the three shapes and bad input, and runs in CI.
+`_clean` accepts only a non-empty string and cuts it to 64 characters, so a caller cannot make the function echo or log a huge value. The function logs the invocation shape and the name's length, never the event itself: HTTP events carry the caller's IP address and headers. `tests/test_greeter.py` covers the three shapes and bad input, and runs in CI. `tests/test_ec2_stopper.py` runs the stopper against a fake EC2 client, so neither boto3 nor an AWS account is needed: it checks the region and instance IDs come from the environment, that an empty list makes no API call, and that the summary is logged as one JSON line. Run both with `python -m pytest tests`.
 
 `tests/main.tftest.hcl` checks the Terraform itself against a mocked AWS provider, with no account needed: each Lambda logs to its own group with retention, the stopper targets only the lab instance, the schedule invokes the stopper without retries, and every Lambda permission is scoped to its source's ARN. Run it with `terraform init -backend=false && terraform test`.
 
@@ -267,6 +267,7 @@ aws-lambda-terraform-lab/
 │   ├── ec2_stopper/lambda_function.py
 │   └── greeter/lambda_function.py
 ├── tests/test_greeter.py             # pytest for the greeter
+├── tests/test_ec2_stopper.py         # pytest for the stopper, with a fake EC2 client
 ├── tests/main.tftest.hcl             # terraform test with a mocked AWS provider
 ├── .github/workflows/terraform.yml   # CI: fmt + validate + terraform test, Lambda tests, trivy security scan
 └── .gitignore
