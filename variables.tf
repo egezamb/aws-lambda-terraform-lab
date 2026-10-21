@@ -17,9 +17,18 @@ variable "lab_role_name" {
 }
 
 variable "schedule_rate" {
-  description = "Rate expression for the EventBridge schedule (matches lab spec: 2 minutes)"
+  description = "EventBridge Scheduler expression: rate(...), cron(...) or at(...). The lab spec is every 2 minutes."
   type        = string
   default     = "rate(2 minutes)"
+
+  # The provider passes any string through, so a typo would only fail at apply.
+  validation {
+    condition = can(regex(
+      "^(rate\\([1-9][0-9]* (minute|minutes|hour|hours|day|days)\\)|cron\\([^)]+\\)|at\\([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\))$",
+      var.schedule_rate
+    ))
+    error_message = "schedule_rate must be rate(<n> minutes|hours|days), cron(...) or at(yyyy-mm-ddThh:mm:ss)."
+  }
 }
 
 variable "instance_type" {
