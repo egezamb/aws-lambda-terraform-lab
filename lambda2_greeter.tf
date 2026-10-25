@@ -20,6 +20,10 @@ resource "aws_lambda_function" "greeter" {
 
   source_code_hash = data.archive_file.greeter_zip.output_base64sha256
 
+  # The API stages are throttled, but the Function URL reaches the function without them; reserved
+  # concurrency caps all three entry points at once. Off (-1) unless greeter_max_concurrency is set.
+  reserved_concurrent_executions = var.greeter_max_concurrency
+
   depends_on = [aws_cloudwatch_log_group.greeter]
 
   tags = {
