@@ -243,7 +243,7 @@ Things this Lab Terraform intentionally does not do because of Learner Lab const
 - **Set Lambda Auth type to `AWS_IAM`** or front the API with a JWT authorizer (Cognito user pool)
 - **Restrict EC2 security group** if the test EC2 is used for anything beyond being stopped
 - **Add WAF in front of the public APIs.** They are already throttled (`api_rate_limit`, default 5 requests a second, and `api_burst_limit`, default 10), but WAF can block by IP and by request content.
-- **Cap the Function URL with reserved concurrency.** The URL itself has no throttle setting, so the API Gateway limits do not cover it.
+- **Cap the Function URL with reserved concurrency.** The URL itself has no throttle setting, so the API Gateway limits do not cover it. Set `greeter_max_concurrency` (for example `5`) to reserve that many concurrent runs for the greeter, which caps the URL and both APIs together. It is off by default because AWS keeps 10 of an account's concurrency unreserved, so on an account with a low total limit the reservation can fail.
 - **Add X-Ray tracing** for end-to-end request visibility
 - **Add a CloudWatch alarm** on Lambda errors > 1% over 5 minutes
 - **Use remote Terraform state** in S3 with `use_lockfile = true` instead of local state (Terraform 1.11 made S3 native locking generally available and deprecated the DynamoDB table)

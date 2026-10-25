@@ -72,6 +72,17 @@ variable "api_rate_limit" {
   }
 }
 
+variable "greeter_max_concurrency" {
+  description = "Reserved concurrency for the greeter: the most invocations it runs at once, through the Function URL and both APIs together. -1 (default) reserves none. The Function URL has no throttle of its own, so this is its only cap. AWS keeps 10 of an account's concurrency unreserved, so on an account with a low total limit a reservation can fail."
+  type        = number
+  default     = -1
+
+  validation {
+    condition     = var.greeter_max_concurrency == -1 || (var.greeter_max_concurrency >= 1 && floor(var.greeter_max_concurrency) == var.greeter_max_concurrency)
+    error_message = "greeter_max_concurrency must be -1 (no reservation) or a whole number of at least 1; 0 would refuse every call."
+  }
+}
+
 variable "api_burst_limit" {
   description = "Requests each API Gateway stage accepts at once above the steady rate."
   type        = number

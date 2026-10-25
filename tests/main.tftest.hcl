@@ -157,6 +157,38 @@ run "the_public_function_url_has_both_statements_it_needs" {
   }
 }
 
+run "greeter_concurrency_is_reserved_only_when_asked" {
+  command = plan
+
+  assert {
+    condition     = aws_lambda_function.greeter.reserved_concurrent_executions == -1
+    error_message = "By default the greeter reserves no concurrency, so the Learner Lab apply keeps working."
+  }
+}
+
+run "greeter_max_concurrency_caps_every_entry_point" {
+  command = plan
+
+  variables {
+    greeter_max_concurrency = 3
+  }
+
+  assert {
+    condition     = aws_lambda_function.greeter.reserved_concurrent_executions == 3
+    error_message = "greeter_max_concurrency must become the greeter's reserved concurrency."
+  }
+}
+
+run "greeter_max_concurrency_of_zero_is_refused" {
+  command = plan
+
+  variables {
+    greeter_max_concurrency = 0
+  }
+
+  expect_failures = [var.greeter_max_concurrency]
+}
+
 run "the_ami_filter_only_matches_the_standard_al2023_image" {
   command = plan
 
