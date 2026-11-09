@@ -57,9 +57,9 @@ def test_a_comma_separated_list_is_trimmed_and_blanks_dropped(monkeypatch):
 @pytest.mark.parametrize("ids", ["", " , "])
 def test_no_instances_means_no_call(monkeypatch, ids):
     stopper, ec2, _ = load(monkeypatch, ids)
-    result = stopper.lambda_handler({}, None)
+    with pytest.raises(ValueError, match="No TARGET_INSTANCE_IDS"):
+        stopper.lambda_handler({}, None)
     assert ec2.calls == []
-    assert result["statusCode"] == 400
 
 
 def test_the_summary_is_logged_as_one_json_line(monkeypatch, capsys):

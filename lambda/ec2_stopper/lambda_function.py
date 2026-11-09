@@ -31,8 +31,8 @@ def lambda_handler(event, context):
     """Stop all configured EC2 instances and return a structured summary."""
     if not INSTANCE_IDS:
         message = "No TARGET_INSTANCE_IDS configured. Nothing to do."
-        print(message)
-        return {"statusCode": 400, "body": message}
+        print(json.dumps({"status": "configuration_error", "region": REGION}))
+        raise ValueError(message)
 
     response = ec2.stop_instances(InstanceIds=INSTANCE_IDS)
 
