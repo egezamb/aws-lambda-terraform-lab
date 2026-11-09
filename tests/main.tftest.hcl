@@ -336,3 +336,19 @@ run "fractional_schedule_retries" {
   }
   expect_failures = [var.schedule_delivery_retries]
 }
+
+run "unsupported_log_retention" {
+  command = plan
+  variables {
+    log_retention_days = 2
+  }
+  expect_failures = [var.log_retention_days]
+}
+
+run "fractional_log_retention" {
+  command = plan
+  variables {
+    log_retention_days = 1.5
+  }
+  expect_failures = [var.log_retention_days]
+}

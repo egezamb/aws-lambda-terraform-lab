@@ -305,3 +305,5 @@ Educational work for WSB Merito Wrocław. Free to use, modify, and learn from. A
 To pause automatic EC2 stops during a lab session, set `schedule_enabled = false` and apply. Set it back to `true` and apply to resume.
 
 `schedule_delivery_retries` defaults to 0 and can be set from 0 to 185. Retries are bounded by the existing 60-second event age. These are Scheduler delivery retries; Lambda asynchronous execution retries are a separate setting.
+
+`log_retention_days` must be a CloudWatch-supported retention period, such as 7, 14, 30 or 90. The default is 7; 0 explicitly disables expiration and can increase storage costs.
