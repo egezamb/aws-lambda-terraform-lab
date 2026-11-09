@@ -74,3 +74,11 @@ def test_oversized_body_is_not_parsed():
 
 def test_deeply_nested_json_is_safe():
     assert body({"body": "[" * 2000 + "0" + "]" * 2000}) == "Hello unknown!"
+
+def test_personalized_response_headers():
+    response = greeter.lambda_handler({"name": "Çağla"}, None)
+    assert response["headers"] == {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+    }

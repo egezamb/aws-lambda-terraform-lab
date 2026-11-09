@@ -84,6 +84,10 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "headers": {"content-type": "text/plain"},
+        "headers": {
+            "content-type": "text/plain; charset=utf-8",
+            "cache-control": "no-store",
+            "x-content-type-options": "nosniff",
+        },
         "body": message,
     }
