@@ -11,6 +11,8 @@ Handles three different invocation shapes safely:
 Returns a Lambda Proxy Integration response: statusCode, headers, body.
 """
 
+import base64
+import binascii
 import json
 
 # Longest name echoed back, so a caller cannot make the function return or log a huge string.
@@ -36,11 +38,15 @@ def _extract_name(event):
         return "unknown"
 
     try:
+        if event.get("isBase64Encoded") is True:
+            if not isinstance(body, str):
+                return "unknown"
+            body = base64.b64decode(body, validate=True).decode("utf-8")
         if isinstance(body, str):
             parsed = json.loads(body)
         else:
             parsed = body
-    except (json.JSONDecodeError, TypeError):
+    except (ValueError, TypeError, binascii.Error, UnicodeDecodeError):
         return "unknown"
 
     if isinstance(parsed, dict):

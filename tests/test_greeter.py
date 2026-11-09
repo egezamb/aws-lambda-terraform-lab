@@ -45,3 +45,12 @@ def test_the_event_is_not_logged(capsys):
     logged = capsys.readouterr().out
     assert "203.0.113.7" not in logged
     assert json.loads(logged) == {"source": "http", "name_length": len("unknown")}
+
+def test_base64_json_body():
+    import base64
+    encoded = base64.b64encode(json.dumps({"name": "Çağla"}).encode()).decode()
+    assert body({"body": encoded, "isBase64Encoded": True}) == "Hello Çağla!"
+
+@pytest.mark.parametrize("encoded", ["!invalid!", "/w==", {}, "e30="])
+def test_bad_base64_payloads_are_safe(encoded):
+    assert body({"body": encoded, "isBase64Encoded": True}) == "Hello unknown!"
