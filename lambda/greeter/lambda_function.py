@@ -14,6 +14,7 @@ Returns a Lambda Proxy Integration response: statusCode, headers, body.
 import base64
 import binascii
 import json
+import unicodedata
 
 # Longest name echoed back, so a caller cannot make the function return or log a huge string.
 MAX_NAME_LENGTH = 64
@@ -21,6 +22,8 @@ MAX_NAME_LENGTH = 64
 
 def _clean(name):
     """A trimmed, length-limited string, or "unknown" for anything that is not a usable name."""
+    if isinstance(name, str):
+        name = "".join(char for char in name if unicodedata.category(char) != "Cc")
     if not isinstance(name, str) or not name.strip():
         return "unknown"
     return name.strip()[:MAX_NAME_LENGTH]

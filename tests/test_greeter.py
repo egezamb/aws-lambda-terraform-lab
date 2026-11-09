@@ -64,3 +64,7 @@ def test_malformed_query_parameters(query):
 
 def test_direct_name_takes_precedence_over_query_and_body():
     assert body({"name": "Ada", "queryStringParameters": {"name": "Grace"}, "body": '{"name":"Linus"}'}) == "Hello Ada!"
+
+@pytest.mark.parametrize("name,expected", [("Ada\r\n", "Ada"), ("A\x00da", "Ada"), ("\x1b\n", "unknown"), ("Çağla", "Çağla")])
+def test_control_characters_are_removed(name, expected):
+    assert body({"name": name}) == f"Hello {expected}!"
