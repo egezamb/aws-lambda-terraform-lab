@@ -93,3 +93,10 @@ variable "api_burst_limit" {
     error_message = "api_burst_limit must be a whole number of at least 1."
   }
 }
+
+variable "schedule_enabled" {
+  description = "Whether the EC2 stopper schedule runs; disable during maintenance without deleting it."
+  type        = bool
+  default     = true
+  nullable    = false
+}

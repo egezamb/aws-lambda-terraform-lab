@@ -1,4 +1,5 @@
 resource "aws_scheduler_schedule" "stop_ec2" {
+  state       = var.schedule_enabled ? "ENABLED" : "DISABLED"
   name        = "${var.project_name}-stop-ec2-schedule"
   description = "Lab 10 Exercise 1: invokes the EC2 stopper Lambda every ${var.schedule_rate}"
 

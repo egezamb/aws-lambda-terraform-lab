@@ -301,3 +301,5 @@ aws-lambda-terraform-lab/
 ## License
 
 Educational work for WSB Merito Wrocław. Free to use, modify, and learn from. Attribution appreciated.
+
+To pause automatic EC2 stops during a lab session, set `schedule_enabled = false` and apply. Set it back to `true` and apply to resume.

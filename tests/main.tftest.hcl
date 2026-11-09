@@ -310,3 +310,12 @@ run "a_newer_python_runtime_reaches_both_functions" {
     error_message = "lambda_runtime must set both functions' runtime."
   }
 }
+
+run "schedule_can_be_paused" {
+  command = plan
+  variables { schedule_enabled = false }
+  assert {
+    condition     = aws_scheduler_schedule.stop_ec2.state == "DISABLED"
+    error_message = "schedule_can_be_paused failed."
+  }
+}
