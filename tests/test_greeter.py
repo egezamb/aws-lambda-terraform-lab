@@ -54,3 +54,13 @@ def test_base64_json_body():
 @pytest.mark.parametrize("encoded", ["!invalid!", "/w==", {}, "e30="])
 def test_bad_base64_payloads_are_safe(encoded):
     assert body({"body": encoded, "isBase64Encoded": True}) == "Hello unknown!"
+
+def test_query_string_greeting():
+    assert body({"queryStringParameters": {"name": "O'Reilly"}, "body": None}) == "Hello O'Reilly!"
+
+@pytest.mark.parametrize("query", [None, [], "name=Ada", {"name": 42}])
+def test_malformed_query_parameters(query):
+    assert body({"queryStringParameters": query}) == "Hello unknown!"
+
+def test_direct_name_takes_precedence_over_query_and_body():
+    assert body({"name": "Ada", "queryStringParameters": {"name": "Grace"}, "body": '{"name":"Linus"}'}) == "Hello Ada!"

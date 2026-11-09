@@ -33,6 +33,10 @@ def _extract_name(event):
     if "name" in event:
         return _clean(event["name"])
 
+    query = event.get("queryStringParameters")
+    if isinstance(query, dict) and "name" in query:
+        return _clean(query["name"])
+
     body = event.get("body")
     if not body:
         return "unknown"
