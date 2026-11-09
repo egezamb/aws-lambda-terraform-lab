@@ -352,3 +352,19 @@ run "fractional_log_retention" {
   }
   expect_failures = [var.log_retention_days]
 }
+
+run "long_project_name" {
+  command = plan
+  variables {
+    project_name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+  expect_failures = [var.project_name]
+}
+
+run "project_name_with_spaces" {
+  command = plan
+  variables {
+    project_name = "my lab"
+  }
+  expect_failures = [var.project_name]
+}

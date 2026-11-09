@@ -8,6 +8,11 @@ variable "project_name" {
   description = "Project name used to prefix resources"
   type        = string
   default     = "lab10-lambda"
+  nullable    = false
+  validation {
+    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_-]{0,45}$", var.project_name))
+    error_message = "project_name must start with a letter and contain at most 46 letters, digits, underscores or hyphens, leaving room for the schedule suffix."
+  }
 }
 
 variable "lab_role_name" {
