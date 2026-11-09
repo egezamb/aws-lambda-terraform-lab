@@ -5,8 +5,7 @@ Handles three different invocation shapes safely:
 
 1. Direct test event:        {"name": "Ada"}
 2. Function URL / HTTP API:  event["body"] is a JSON string
-3. REST API with mapping:    event["body"] is a JSON string (built by the
-                              mapping template from query string params)
+3. REST API with mapping:    {"name": "Ada"} (escaped query-string name)
 
 Returns a Lambda Proxy Integration response: statusCode, headers, body.
 """

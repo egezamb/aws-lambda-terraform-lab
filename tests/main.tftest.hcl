@@ -368,3 +368,12 @@ run "project_name_with_spaces" {
   }
   expect_failures = [var.project_name]
 }
+
+run "rest_mapping_escapes_query_names" {
+  command = plan
+
+  assert {
+    condition     = strcontains(aws_api_gateway_integration.greeter_rest_get.request_templates["application/json"], "$util.escapeJavaScript") && !strcontains(aws_api_gateway_integration.greeter_rest_get.request_templates["application/json"], "body")
+    error_message = "rest_mapping_escapes_query_names failed."
+  }
+}

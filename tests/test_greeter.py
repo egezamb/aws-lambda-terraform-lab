@@ -89,3 +89,9 @@ def test_invocation_id_is_logged_without_request_data(capsys):
     logged = json.loads(capsys.readouterr().out)
     assert logged["request_id"] == "request-123"
     assert "private-name" not in json.dumps(logged)
+
+@pytest.mark.parametrize("name", ["O'Reilly", 'Ada "Countess"', "path\\name", "Çağla"])
+def test_rest_mapping_direct_name_payload(name):
+    # The VTL mapping emits a direct {name: ...} object; the function must preserve its value.
+    event = json.loads(json.dumps({"name": name}))
+    assert body(event) == f"Hello {name}!"

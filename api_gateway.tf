@@ -101,9 +101,11 @@ resource "aws_api_gateway_integration" "greeter_rest_get" {
   passthrough_behavior    = "WHEN_NO_TEMPLATES"
 
   request_templates = {
-    "application/json" = jsonencode({
-      body = "{\"name\":\"$input.params('name')\"}"
-    })
+    # escapeJavaScript escapes apostrophes as \' which JSON does not support; undo only that escape.
+    # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html
+    "application/json" = <<-VTL
+      {"name": "$util.escapeJavaScript($input.params('name')).replaceAll("\\'","'")"}
+    VTL
   }
 }
 

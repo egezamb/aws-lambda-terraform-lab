@@ -210,7 +210,7 @@ Same handler, three invocation paths, one Lambda. Saves a redeploy and keeps the
 
 ### Exercise 3
 1. **Why did the function code change between Ex 2 and Ex 3?** API Gateway and Function URL deliver the request payload as a JSON string in `event["body"]`, not as top-level keys. The function must parse the body to extract the name.
-2. **Purpose of the mapping template?** It transforms the GET request's query-string `name` parameter into the same JSON `body` shape the function already understands. Without it, `event["body"]` would be empty for GET requests, so `name` would resolve to `"unknown"`.
+2. **Purpose of the mapping template?** It transforms the GET request's query-string `name` parameter into a direct JSON `name` field. The template escapes quotes, backslashes and control characters before JSON parsing, and removes the JavaScript-only apostrophe escape. The handler also accepts query parameters for proxy events.
 3. **HTTP API vs REST API:**
    - HTTP API is ~70% cheaper and ~60% lower latency
    - REST API supports request transformation, usage plans, API keys, full Swagger/OpenAPI import
