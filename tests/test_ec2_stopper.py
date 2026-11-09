@@ -66,3 +66,8 @@ def test_the_summary_is_logged_as_one_json_line(monkeypatch, capsys):
     stopper, _, _ = load(monkeypatch, "i-0abc")
     result = stopper.lambda_handler({}, None)
     assert json.loads(capsys.readouterr().out) == result
+
+def test_duplicate_ids_are_stopped_once_in_input_order(monkeypatch):
+    stopper, ec2, _ = load(monkeypatch, "i-1, i-2,i-1, i-2")
+    stopper.lambda_handler({}, None)
+    assert ec2.calls == [["i-1", "i-2"]]

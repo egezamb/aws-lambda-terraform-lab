@@ -18,11 +18,11 @@ import os
 import boto3
 
 REGION = os.environ.get("TARGET_REGION", "us-east-1")
-INSTANCE_IDS = [
+INSTANCE_IDS = list(dict.fromkeys([
     instance_id.strip()
     for instance_id in os.environ.get("TARGET_INSTANCE_IDS", "").split(",")
     if instance_id.strip()
-]
+]))
 
 ec2 = boto3.client("ec2", region_name=REGION)
 
