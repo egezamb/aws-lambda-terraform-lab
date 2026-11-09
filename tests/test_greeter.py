@@ -68,3 +68,9 @@ def test_direct_name_takes_precedence_over_query_and_body():
 @pytest.mark.parametrize("name,expected", [("Ada\r\n", "Ada"), ("A\x00da", "Ada"), ("\x1b\n", "unknown"), ("Çağla", "Çağla")])
 def test_control_characters_are_removed(name, expected):
     assert body({"name": name}) == f"Hello {expected}!"
+
+def test_oversized_body_is_not_parsed():
+    assert body({"body": json.dumps({"name": "Ada", "padding": "x" * greeter.MAX_BODY_LENGTH})}) == "Hello unknown!"
+
+def test_deeply_nested_json_is_safe():
+    assert body({"body": "[" * 2000 + "0" + "]" * 2000}) == "Hello unknown!"

@@ -18,6 +18,8 @@ import unicodedata
 
 # Longest name echoed back, so a caller cannot make the function return or log a huge string.
 MAX_NAME_LENGTH = 64
+# Bound the serialized HTTP body before decoding or parsing.
+MAX_BODY_LENGTH = 16384
 
 
 def _clean(name):
@@ -43,6 +45,8 @@ def _extract_name(event):
     body = event.get("body")
     if not body:
         return "unknown"
+    if isinstance(body, str) and len(body) > MAX_BODY_LENGTH:
+        return "unknown"
 
     try:
         if event.get("isBase64Encoded") is True:
@@ -53,7 +57,7 @@ def _extract_name(event):
             parsed = json.loads(body)
         else:
             parsed = body
-    except (ValueError, TypeError, binascii.Error, UnicodeDecodeError):
+    except (ValueError, TypeError, binascii.Error, UnicodeDecodeError, RecursionError):
         return "unknown"
 
     if isinstance(parsed, dict):
