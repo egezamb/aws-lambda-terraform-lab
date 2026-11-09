@@ -34,7 +34,11 @@ def lambda_handler(event, context):
         print(json.dumps({"status": "configuration_error", "region": REGION}))
         raise ValueError(message)
 
-    response = ec2.stop_instances(InstanceIds=INSTANCE_IDS)
+    try:
+        response = ec2.stop_instances(InstanceIds=INSTANCE_IDS)
+    except Exception as error:
+        print(json.dumps({"status": "stop_failed", "region": REGION, "error_type": type(error).__name__}))
+        raise
 
     stopped = [
         {
