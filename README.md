@@ -286,6 +286,27 @@ aws-lambda-terraform-lab/
 
 ---
 
+## Runtime behavior and operational settings
+
+The greeter accepts a direct `name`, a query-string `name`, or a JSON body. That is
+also the precedence when more than one is provided. HTTP JSON bodies may be base64
+encoded. Serialized bodies longer than 16,384 characters and malformed input fall
+back to `unknown`; names are trimmed, stripped of control characters and limited
+to 64 characters. Proxy responses are UTF-8 text with `Cache-Control: no-store`.
+Logs include the Lambda invocation ID when available, but not request bodies or names.
+
+The stopper deduplicates configured instance IDs. Missing targets and EC2 API
+failures raise errors so Lambda records a failed invocation instead of treating
+an HTTP-style status code as success. SDK failures are logged by type and re-raised.
+
+To pause automatic EC2 stops during a lab session, set `schedule_enabled = false` and apply. Set it back to `true` and apply to resume.
+
+`schedule_delivery_retries` defaults to 0 and can be set from 0 to 185. Retries are bounded by the existing 60-second event age. These are Scheduler delivery retries; Lambda asynchronous execution retries are a separate setting.
+
+`log_retention_days` must be a CloudWatch-supported retention period, such as 7, 14, 30 or 90. The default is 7; 0 explicitly disables expiration and can increase storage costs.
+
+REST deployment fingerprints include the method, integration and response configuration. Changing a mapping template therefore creates a new deployment even when resource IDs stay the same. Review the deployment replacement in `terraform plan` before applying.
+
 ## Author
 
 **Ege Zambelli** — 3rd-year Software Development student at WSB Merito Wrocław, focusing on cloud engineering and DevOps.
@@ -301,9 +322,3 @@ aws-lambda-terraform-lab/
 ## License
 
 Educational work for WSB Merito Wrocław. Free to use, modify, and learn from. Attribution appreciated.
-
-To pause automatic EC2 stops during a lab session, set `schedule_enabled = false` and apply. Set it back to `true` and apply to resume.
-
-`schedule_delivery_retries` defaults to 0 and can be set from 0 to 185. Retries are bounded by the existing 60-second event age. These are Scheduler delivery retries; Lambda asynchronous execution retries are a separate setting.
-
-`log_retention_days` must be a CloudWatch-supported retention period, such as 7, 14, 30 or 90. The default is 7; 0 explicitly disables expiration and can increase storage costs.
