@@ -100,3 +100,14 @@ variable "schedule_enabled" {
   default     = true
   nullable    = false
 }
+
+variable "schedule_delivery_retries" {
+  description = "Scheduler delivery retries (0-185). This controls delivery to Lambda, not Lambda asynchronous execution retries."
+  type        = number
+  default     = 0
+  nullable    = false
+  validation {
+    condition     = var.schedule_delivery_retries >= 0 && var.schedule_delivery_retries <= 185 && floor(var.schedule_delivery_retries) == var.schedule_delivery_retries
+    error_message = "schedule_delivery_retries must be a whole number from 0 to 185."
+  }
+}

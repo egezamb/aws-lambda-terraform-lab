@@ -303,3 +303,5 @@ aws-lambda-terraform-lab/
 Educational work for WSB Merito Wrocław. Free to use, modify, and learn from. Attribution appreciated.
 
 To pause automatic EC2 stops during a lab session, set `schedule_enabled = false` and apply. Set it back to `true` and apply to resume.
+
+`schedule_delivery_retries` defaults to 0 and can be set from 0 to 185. Retries are bounded by the existing 60-second event age. These are Scheduler delivery retries; Lambda asynchronous execution retries are a separate setting.
