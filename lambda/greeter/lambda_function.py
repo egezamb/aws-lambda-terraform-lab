@@ -78,7 +78,11 @@ def _source(event):
 def lambda_handler(event, context):
     name = _extract_name(event)
     # Log the shape, not the event: HTTP events carry the caller's IP address and headers.
-    print(json.dumps({"source": _source(event), "name_length": len(name)}))
+    log = {"source": _source(event), "name_length": len(name)}
+    request_id = getattr(context, "aws_request_id", None)
+    if request_id:
+        log["request_id"] = request_id
+    print(json.dumps(log))
 
     message = f"Hello {name}!"
 

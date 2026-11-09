@@ -82,3 +82,10 @@ def test_personalized_response_headers():
         "cache-control": "no-store",
         "x-content-type-options": "nosniff",
     }
+
+def test_invocation_id_is_logged_without_request_data(capsys):
+    from types import SimpleNamespace
+    greeter.lambda_handler({"name": "private-name"}, SimpleNamespace(aws_request_id="request-123"))
+    logged = json.loads(capsys.readouterr().out)
+    assert logged["request_id"] == "request-123"
+    assert "private-name" not in json.dumps(logged)
