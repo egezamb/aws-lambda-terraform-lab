@@ -18,11 +18,11 @@ import os
 import boto3
 
 REGION = os.environ.get("TARGET_REGION", "us-east-1")
-INSTANCE_IDS = [
+INSTANCE_IDS = list(dict.fromkeys([
     instance_id.strip()
     for instance_id in os.environ.get("TARGET_INSTANCE_IDS", "").split(",")
     if instance_id.strip()
-]
+]))
 
 ec2 = boto3.client("ec2", region_name=REGION)
 
@@ -31,10 +31,14 @@ def lambda_handler(event, context):
     """Stop all configured EC2 instances and return a structured summary."""
     if not INSTANCE_IDS:
         message = "No TARGET_INSTANCE_IDS configured. Nothing to do."
-        print(message)
-        return {"statusCode": 400, "body": message}
+        print(json.dumps({"status": "configuration_error", "region": REGION}))
+        raise ValueError(message)
 
-    response = ec2.stop_instances(InstanceIds=INSTANCE_IDS)
+    try:
+        response = ec2.stop_instances(InstanceIds=INSTANCE_IDS)
+    except Exception as error:
+        print(json.dumps({"status": "stop_failed", "region": REGION, "error_type": type(error).__name__}))
+        raise
 
     stopped = [
         {

@@ -45,3 +45,53 @@ def test_the_event_is_not_logged(capsys):
     logged = capsys.readouterr().out
     assert "203.0.113.7" not in logged
     assert json.loads(logged) == {"source": "http", "name_length": len("unknown")}
+
+def test_base64_json_body():
+    import base64
+    encoded = base64.b64encode(json.dumps({"name": "Çağla"}).encode()).decode()
+    assert body({"body": encoded, "isBase64Encoded": True}) == "Hello Çağla!"
+
+@pytest.mark.parametrize("encoded", ["!invalid!", "/w==", {}, "e30="])
+def test_bad_base64_payloads_are_safe(encoded):
+    assert body({"body": encoded, "isBase64Encoded": True}) == "Hello unknown!"
+
+def test_query_string_greeting():
+    assert body({"queryStringParameters": {"name": "O'Reilly"}, "body": None}) == "Hello O'Reilly!"
+
+@pytest.mark.parametrize("query", [None, [], "name=Ada", {"name": 42}])
+def test_malformed_query_parameters(query):
+    assert body({"queryStringParameters": query}) == "Hello unknown!"
+
+def test_direct_name_takes_precedence_over_query_and_body():
+    assert body({"name": "Ada", "queryStringParameters": {"name": "Grace"}, "body": '{"name":"Linus"}'}) == "Hello Ada!"
+
+@pytest.mark.parametrize("name,expected", [("Ada\r\n", "Ada"), ("A\x00da", "Ada"), ("\x1b\n", "unknown"), ("Çağla", "Çağla")])
+def test_control_characters_are_removed(name, expected):
+    assert body({"name": name}) == f"Hello {expected}!"
+
+def test_oversized_body_is_not_parsed():
+    assert body({"body": json.dumps({"name": "Ada", "padding": "x" * greeter.MAX_BODY_LENGTH})}) == "Hello unknown!"
+
+def test_deeply_nested_json_is_safe():
+    assert body({"body": "[" * 2000 + "0" + "]" * 2000}) == "Hello unknown!"
+
+def test_personalized_response_headers():
+    response = greeter.lambda_handler({"name": "Çağla"}, None)
+    assert response["headers"] == {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+    }
+
+def test_invocation_id_is_logged_without_request_data(capsys):
+    from types import SimpleNamespace
+    greeter.lambda_handler({"name": "private-name"}, SimpleNamespace(aws_request_id="request-123"))
+    logged = json.loads(capsys.readouterr().out)
+    assert logged["request_id"] == "request-123"
+    assert "private-name" not in json.dumps(logged)
+
+@pytest.mark.parametrize("name", ["O'Reilly", 'Ada "Countess"', "path\\name", "Çağla"])
+def test_rest_mapping_direct_name_payload(name):
+    # The VTL mapping emits a direct {name: ...} object; the function must preserve its value.
+    event = json.loads(json.dumps({"name": name}))
+    assert body(event) == f"Hello {name}!"

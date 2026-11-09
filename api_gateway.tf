@@ -101,9 +101,11 @@ resource "aws_api_gateway_integration" "greeter_rest_get" {
   passthrough_behavior    = "WHEN_NO_TEMPLATES"
 
   request_templates = {
-    "application/json" = jsonencode({
-      body = "{\"name\":\"$input.params('name')\"}"
-    })
+    # escapeJavaScript escapes apostrophes as \' which JSON does not support; undo only that escape.
+    # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html
+    "application/json" = <<-VTL
+      {"name": "$util.escapeJavaScript($input.params('name')).replaceAll("\\'","'")"}
+    VTL
   }
 }
 
@@ -135,11 +137,13 @@ resource "aws_api_gateway_deployment" "greeter_rest" {
   rest_api_id = aws_api_gateway_rest_api.greeter_rest.id
 
   triggers = {
+    # Include configuration, not just IDs: template edits update integrations in place.
     redeployment = sha1(jsonencode([
-      aws_api_gateway_resource.greeter_rest_path.id,
-      aws_api_gateway_method.greeter_rest_get.id,
-      aws_api_gateway_integration.greeter_rest_get.id,
-      aws_api_gateway_integration_response.greeter_rest_get_200.id,
+      aws_api_gateway_resource.greeter_rest_path,
+      aws_api_gateway_method.greeter_rest_get,
+      aws_api_gateway_integration.greeter_rest_get,
+      aws_api_gateway_method_response.greeter_rest_get_200,
+      aws_api_gateway_integration_response.greeter_rest_get_200,
     ]))
   }
 

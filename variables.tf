@@ -8,6 +8,11 @@ variable "project_name" {
   description = "Project name used to prefix resources"
   type        = string
   default     = "lab10-lambda"
+  nullable    = false
+  validation {
+    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_-]{0,45}$", var.project_name))
+    error_message = "project_name must start with a letter and contain at most 46 letters, digits, underscores or hyphens, leaving room for the schedule suffix."
+  }
 }
 
 variable "lab_role_name" {
@@ -53,6 +58,11 @@ variable "log_retention_days" {
   description = "CloudWatch log retention period in days"
   type        = number
   default     = 7
+  nullable    = false
+  validation {
+    condition     = contains([0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653], var.log_retention_days)
+    error_message = "log_retention_days must be a supported CloudWatch retention period (for example 7, 14, 30 or 90), or 0 to never expire."
+  }
 }
 
 variable "your_name" {
@@ -91,5 +101,23 @@ variable "api_burst_limit" {
   validation {
     condition     = var.api_burst_limit >= 1 && floor(var.api_burst_limit) == var.api_burst_limit
     error_message = "api_burst_limit must be a whole number of at least 1."
+  }
+}
+
+variable "schedule_enabled" {
+  description = "Whether the EC2 stopper schedule runs; disable during maintenance without deleting it."
+  type        = bool
+  default     = true
+  nullable    = false
+}
+
+variable "schedule_delivery_retries" {
+  description = "Scheduler delivery retries (0-185). This controls delivery to Lambda, not Lambda asynchronous execution retries."
+  type        = number
+  default     = 0
+  nullable    = false
+  validation {
+    condition     = var.schedule_delivery_retries >= 0 && var.schedule_delivery_retries <= 185 && floor(var.schedule_delivery_retries) == var.schedule_delivery_retries
+    error_message = "schedule_delivery_retries must be a whole number from 0 to 185."
   }
 }

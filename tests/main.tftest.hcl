@@ -310,3 +310,70 @@ run "a_newer_python_runtime_reaches_both_functions" {
     error_message = "lambda_runtime must set both functions' runtime."
   }
 }
+
+run "schedule_can_be_paused" {
+  command = plan
+  variables { schedule_enabled = false }
+  assert {
+    condition     = aws_scheduler_schedule.stop_ec2.state == "DISABLED"
+    error_message = "schedule_can_be_paused failed."
+  }
+}
+
+run "schedule_delivery_retries_are_configurable" {
+  command = plan
+  variables { schedule_delivery_retries = 2 }
+  assert {
+    condition     = aws_scheduler_schedule.stop_ec2.target[0].retry_policy[0].maximum_retry_attempts == 2
+    error_message = "schedule_delivery_retries_are_configurable failed."
+  }
+}
+
+run "fractional_schedule_retries" {
+  command = plan
+  variables {
+    schedule_delivery_retries = 1.5
+  }
+  expect_failures = [var.schedule_delivery_retries]
+}
+
+run "unsupported_log_retention" {
+  command = plan
+  variables {
+    log_retention_days = 2
+  }
+  expect_failures = [var.log_retention_days]
+}
+
+run "fractional_log_retention" {
+  command = plan
+  variables {
+    log_retention_days = 1.5
+  }
+  expect_failures = [var.log_retention_days]
+}
+
+run "long_project_name" {
+  command = plan
+  variables {
+    project_name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+  expect_failures = [var.project_name]
+}
+
+run "project_name_with_spaces" {
+  command = plan
+  variables {
+    project_name = "my lab"
+  }
+  expect_failures = [var.project_name]
+}
+
+run "rest_mapping_escapes_query_names" {
+  command = plan
+
+  assert {
+    condition     = strcontains(aws_api_gateway_integration.greeter_rest_get.request_templates["application/json"], "$util.escapeJavaScript") && !strcontains(aws_api_gateway_integration.greeter_rest_get.request_templates["application/json"], "body")
+    error_message = "rest_mapping_escapes_query_names failed."
+  }
+}

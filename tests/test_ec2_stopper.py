@@ -57,12 +57,29 @@ def test_a_comma_separated_list_is_trimmed_and_blanks_dropped(monkeypatch):
 @pytest.mark.parametrize("ids", ["", " , "])
 def test_no_instances_means_no_call(monkeypatch, ids):
     stopper, ec2, _ = load(monkeypatch, ids)
-    result = stopper.lambda_handler({}, None)
+    with pytest.raises(ValueError, match="No TARGET_INSTANCE_IDS"):
+        stopper.lambda_handler({}, None)
     assert ec2.calls == []
-    assert result["statusCode"] == 400
 
 
 def test_the_summary_is_logged_as_one_json_line(monkeypatch, capsys):
     stopper, _, _ = load(monkeypatch, "i-0abc")
     result = stopper.lambda_handler({}, None)
     assert json.loads(capsys.readouterr().out) == result
+
+def test_duplicate_ids_are_stopped_once_in_input_order(monkeypatch):
+    stopper, ec2, _ = load(monkeypatch, "i-1, i-2,i-1, i-2")
+    stopper.lambda_handler({}, None)
+    assert ec2.calls == [["i-1", "i-2"]]
+
+def test_aws_errors_are_logged_and_reraised(monkeypatch, capsys):
+    stopper, ec2, _ = load(monkeypatch, "i-1")
+    error = RuntimeError("private AWS error details")
+    def fail(**kwargs):
+        raise error
+    ec2.stop_instances = fail
+    with pytest.raises(RuntimeError) as caught:
+        stopper.lambda_handler({"secret": "not-logged"}, None)
+    assert caught.value is error
+    logged = json.loads(capsys.readouterr().out)
+    assert logged == {"status": "stop_failed", "region": "eu-central-1", "error_type": "RuntimeError"}

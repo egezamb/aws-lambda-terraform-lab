@@ -5,20 +5,26 @@ Handles three different invocation shapes safely:
 
 1. Direct test event:        {"name": "Ada"}
 2. Function URL / HTTP API:  event["body"] is a JSON string
-3. REST API with mapping:    event["body"] is a JSON string (built by the
-                              mapping template from query string params)
+3. REST API with mapping:    {"name": "Ada"} (escaped query-string name)
 
 Returns a Lambda Proxy Integration response: statusCode, headers, body.
 """
 
+import base64
+import binascii
 import json
+import unicodedata
 
 # Longest name echoed back, so a caller cannot make the function return or log a huge string.
 MAX_NAME_LENGTH = 64
+# Bound the serialized HTTP body before decoding or parsing.
+MAX_BODY_LENGTH = 16384
 
 
 def _clean(name):
     """A trimmed, length-limited string, or "unknown" for anything that is not a usable name."""
+    if isinstance(name, str):
+        name = "".join(char for char in name if unicodedata.category(char) != "Cc")
     if not isinstance(name, str) or not name.strip():
         return "unknown"
     return name.strip()[:MAX_NAME_LENGTH]
@@ -31,16 +37,26 @@ def _extract_name(event):
     if "name" in event:
         return _clean(event["name"])
 
+    query = event.get("queryStringParameters")
+    if isinstance(query, dict) and "name" in query:
+        return _clean(query["name"])
+
     body = event.get("body")
     if not body:
         return "unknown"
+    if isinstance(body, str) and len(body) > MAX_BODY_LENGTH:
+        return "unknown"
 
     try:
+        if event.get("isBase64Encoded") is True:
+            if not isinstance(body, str):
+                return "unknown"
+            body = base64.b64decode(body, validate=True).decode("utf-8")
         if isinstance(body, str):
             parsed = json.loads(body)
         else:
             parsed = body
-    except (json.JSONDecodeError, TypeError):
+    except (ValueError, TypeError, binascii.Error, UnicodeDecodeError, RecursionError):
         return "unknown"
 
     if isinstance(parsed, dict):
@@ -61,12 +77,20 @@ def _source(event):
 def lambda_handler(event, context):
     name = _extract_name(event)
     # Log the shape, not the event: HTTP events carry the caller's IP address and headers.
-    print(json.dumps({"source": _source(event), "name_length": len(name)}))
+    log = {"source": _source(event), "name_length": len(name)}
+    request_id = getattr(context, "aws_request_id", None)
+    if request_id:
+        log["request_id"] = request_id
+    print(json.dumps(log))
 
     message = f"Hello {name}!"
 
     return {
         "statusCode": 200,
-        "headers": {"content-type": "text/plain"},
+        "headers": {
+            "content-type": "text/plain; charset=utf-8",
+            "cache-control": "no-store",
+            "x-content-type-options": "nosniff",
+        },
         "body": message,
     }
