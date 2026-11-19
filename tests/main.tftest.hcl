@@ -6,7 +6,7 @@
 mock_provider "aws" {
   mock_data "aws_region" {
     defaults = {
-      name = "us-east-1"
+      region = "us-east-1"
     }
   }
   mock_data "aws_caller_identity" {
@@ -375,5 +375,14 @@ run "rest_mapping_escapes_query_names" {
   assert {
     condition     = strcontains(aws_api_gateway_integration.greeter_rest_get.request_templates["application/json"], "$util.escapeJavaScript") && !strcontains(aws_api_gateway_integration.greeter_rest_get.request_templates["application/json"], "body")
     error_message = "rest_mapping_escapes_query_names failed."
+  }
+}
+
+run "the_stopper_targets_the_providers_region" {
+  command = plan
+
+  assert {
+    condition     = aws_lambda_function.ec2_stopper.environment[0].variables["TARGET_REGION"] == "us-east-1"
+    error_message = "TARGET_REGION must be the provider's region."
   }
 }

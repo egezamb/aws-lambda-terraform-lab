@@ -5,7 +5,7 @@ output "ec2_instance_id" {
 
 output "ec2_instance_state_url" {
   description = "AWS Console deep link to the test EC2 instance"
-  value       = "https://${data.aws_region.current.name}.console.aws.amazon.com/ec2/home?region=${data.aws_region.current.name}#InstanceDetails:instanceId=${aws_instance.lab_test.id}"
+  value       = "https://${data.aws_region.current.region}.console.aws.amazon.com/ec2/home?region=${data.aws_region.current.region}#InstanceDetails:instanceId=${aws_instance.lab_test.id}"
 }
 
 output "ec2_stopper_lambda_name" {
