@@ -24,3 +24,6 @@ crash.*.log
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# tflint plugins, installed by tflint --init
+.tflint.d/
