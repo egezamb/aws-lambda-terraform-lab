@@ -22,7 +22,7 @@ resource "aws_lambda_function" "ec2_stopper" {
 
   environment {
     variables = {
-      TARGET_REGION       = data.aws_region.current.name
+      TARGET_REGION       = data.aws_region.current.region
       TARGET_INSTANCE_IDS = aws_instance.lab_test.id
     }
   }
