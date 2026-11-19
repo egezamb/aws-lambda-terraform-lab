@@ -70,7 +70,7 @@ jobs:
         run: tflint --format compact
 
   lambda-tests:
-    name: Lambda tests
+    name: Lambda lint and tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -79,7 +79,9 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - run: pip install pytest==8.4.2
+      - run: pip install pytest==8.4.2 ruff==0.17.6
+      # ruff's default rules: syntax errors, undefined names, unused imports and variables.
+      - run: ruff check lambda tests
       - run: python -m pytest -q tests
 
   security-scan:
