@@ -269,7 +269,9 @@ aws-lambda-terraform-lab/
 ├── tests/test_greeter.py             # pytest for the greeter
 ├── tests/test_ec2_stopper.py         # pytest for the stopper, with a fake EC2 client
 ├── tests/main.tftest.hcl             # terraform test with a mocked AWS provider
-├── .github/workflows/terraform.yml   # CI: fmt + validate + terraform test, Lambda tests, trivy security scan
+├── Makefile                          # make check / lint / security: the CI checks, locally
+├── .tflint.hcl                       # tflint rules: Terraform recommended + AWS ruleset
+├── .github/workflows/terraform.yml   # CI: fmt + validate + terraform test on two Terraform versions, tflint, ruff + pytest, trivy
 └── .gitignore
 ```
 
@@ -282,7 +284,7 @@ aws-lambda-terraform-lab/
 - **AWS EventBridge Scheduler** (newer than legacy `aws_cloudwatch_event_rule`)
 - **AWS API Gateway v2** (HTTP API) and v1 (REST API)
 - **AWS CloudWatch Logs**
-- **GitHub Actions** for CI
+- **GitHub Actions** for CI: `terraform test` on Terraform 1.7.5 and 1.15.4, tflint, ruff and pytest for the Lambda code, and a trivy scan. `make check` runs the same Terraform and pytest checks locally, with no AWS account.
 
 ---
 
