@@ -1,6 +1,6 @@
 # AWS Lambda Lab — Terraform Edition
 
-![Terraform](https://img.shields.io/badge/Terraform-1.5+-7B42BC?style=flat&logo=terraform&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-1.7+-7B42BC?style=flat&logo=terraform&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-Lambda%20%2B%20EventBridge%20%2B%20API%20Gateway-FF9900?style=flat&logo=amazon-aws&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
 ![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat&logo=github-actions&logoColor=white)
@@ -77,7 +77,7 @@ This is the workflow real cloud teams use. The lab learning objectives (schedule
 ## Prerequisites
 
 - **AWS account** — works with the Learner Lab (uses the pre-existing `LabRole`)
-- **Terraform** ≥ 1.5 ([install](https://developer.hashicorp.com/terraform/install))
+- **Terraform** ≥ 1.7 ([install](https://developer.hashicorp.com/terraform/install))
 - **AWS CLI** configured (`aws configure` or AWS Learner Lab credentials in `~/.aws/credentials`)
 - **Python 3.12+** (only needed if you want to test the Lambda code locally — not required for deployment)
 
@@ -277,7 +277,7 @@ aws-lambda-terraform-lab/
 
 ## Tech Stack
 
-- **Terraform** `>= 1.5` with the `hashicorp/aws` `~> 5.0` provider
+- **Terraform** `>= 1.7` with the `hashicorp/aws` `~> 6.68` provider
 - **AWS Lambda** (Python 3.12 runtime)
 - **AWS EventBridge Scheduler** (newer than legacy `aws_cloudwatch_event_rule`)
 - **AWS API Gateway v2** (HTTP API) and v1 (REST API)
