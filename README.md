@@ -309,7 +309,7 @@ REST deployment fingerprints include the method, integration and response config
 
 ## Author
 
-**Ege Zambelli** — 3rd-year Software Development student at WSB Merito Wrocław, focusing on cloud engineering and DevOps.
+**Ege Zambelli** — final-year Software Development student at WSB Merito Wrocław, focusing on cloud engineering and DevOps.
 
 - GitHub: [@egezamb](https://github.com/egezamb)
 - Related projects:
